@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js - my first attempt - frankenstein - modified by G.Garin </title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #808080;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="info">Simple lights, speed and materials settings /modified by G.Garin/<br/>
+		Direct Light:
+		<a onclick="directlight.position.set(0, 1, 0).normalize();">top</a> |
+		<a onclick="directlight.position.set(1, 1, 0).normalize();">right</a> |
+		<a onclick="directlight.position.set(0, 1, 1).normalize();">left</a> | <br/>
+		Materials:
+		<a onclick="changeMaterial('0x0000bb', 100);">Mucho Brillo y Azul</a> |
+		<a onclick="changeMaterial('0xda30ff', 10);">Opaco y Rosado</a> |
+		<a onclick="changeMaterial('0x1fff58', 50);">Brillo y Verde</a> | <br/>
+		Textures:
+		<a onclick="changeTexture('textura/lava.jpg');">Lava</a> |
+		<a onclick="changeTexture('textura/grass.jpg');">Cesped</a> |
+		<a onclick="changeTexture('textura/lana.jpg');">Lana</a> | <br/>
+		Timer:
+		<a onclick="speed = -0.002 ;">faster</a> |
+		<a onclick="speed = -0.00002 ;">slower</a> |<br/>
+		<a onclick="speed = -0.0002 ;">normal</a> |<br/>
+		</div>
+
+		<div id="container"></div>
+		<div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - my first demo</div>
+
+		<script src="build/three.min.js"></script>
+		<script src="build/stats.min.js"></script>
+
+		<script>
+
+			var container, stats;
+			var camera, scene, renderer, speed;
+			var lightmesh, pointlight, otherpointlight, ambientlight, directlight;
+			var mouseX = 0, mouseY = 0;
+			var material, mesh, texture;
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			animate();
+
+
+			function init() {
+
+				container = document.getElementById('container');
+				scene = new THREE.Scene();
+				camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 10000);
+				camera.position.z = 1000;
+
+				scene.add(camera);
+
+				// setting default speed
+				speed = -0.0003;
+
+				// lights
+				pointlight = new THREE.PointLight(0xFFFFFF, 0.9);
+				otherpointlight = new THREE.PointLight(0xFFFFFF);
+				ambientlight = new THREE.AmbientLight(0xFFFFFF);
+				directlight = new THREE.DirectionalLight(0xFFFFFF, 0.9);
+				// lights from the top at half intensity (0.5)
+
+				ambientlight.position.set(1, 1, 0).normalize();
+				scene.add(pointlight);
+				scene.add(otherpointlight);
+				scene.add(ambientlight);
+				scene.add(directlight);
+
+				// light ball
+				lightmesh = new THREE.Mesh(new THREE.SphereGeometry(10, 16, 8), new THREE.MeshPhongMaterial( {color: 0xFFAA00}));
+				otherlightmesh = new THREE.Mesh(new THREE.SphereGeometry(10, 16, 8), new THREE.MeshPhongMaterial( {color: 0xFFAA00}));
+				lightmesh.position = pointlight.position;
+
+				// an other light ball
+				otherlightmesh.position = otherpointlight.position;
+				scene.add(lightmesh);
+				scene.add(otherlightmesh);
+
+				// simple ball
+				texture = THREE.ImageUtils.loadTexture('textura/negra.jpg');
+				texture2 = THREE.ImageUtils.loadTexture('textura/metal.jpg');
+				texture.neadsUpdate = true;
+				texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+				texture.anisotropy = 16;
+
+				texture2.neadsUpdate = true;
+				texture2.wrapS = texture2.wrapT = THREE.RepeatWrapping;
+				texture2.anisotropy = 16;
+
+
+				sphere = new THREE.SphereGeometry(200, 32, 32);
+				sphere2 = new THREE.SphereGeometry(100, 32, 32);
+				material =  new THREE.MeshPhongMaterial({map: texture, shading: THREE.SmoothShading});
+				material2 =  new THREE.MeshPhongMaterial({map: texture2, shading: THREE.SmoothShading});
+				addMesh(sphere, 1, -200, 0, 0, 0, 0, 0, material);
+				addMesh(sphere2, 1, -700, 120, 0, 0, 0, 0, material2);
+				//addMesh(sphere, 1, -400, 40, 40, 0, 0, 0, material);
+
+				// render
+				renderer = new THREE.WebGLRenderer({clearColor: 0x0a0a0a, clearAlpha: 1, antialias: true });
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				container.appendChild(renderer.domElement);
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+				renderer.physicallyBasedShading = true;
+
+				// stats
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild(stats.domElement);
+
+				document.addEventListener('mousemove', onDocumentMouseMove, false);
+				window.addEventListener('resize', onWindowResize, false);
+			}
+
+			function addMesh(geometry, scale, x, y, z, rx, ry, rz, material){
+
+				mesh = new THREE.Mesh(geometry, material);
+				mesh.scale.set(scale, scale, scale);
+				mesh.position.set(x, y, z);
+				mesh.rotation.set(rx, ry, rz);
+				scene.add(mesh);
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame(animate);
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+
+				var timer = speed * Date.now();
+
+				camera.position.x += ( mouseX - camera.position.x) * .05;
+				camera.position.y += ( - mouseY - camera.position.y) * .05;
+
+				camera.lookAt(scene.position);
+
+				lightmesh.position.x = 1000 * Math.cos(timer);
+				lightmesh.position.z = 1000 * Math.sin(timer);
+				otherlightmesh.position.y = 1000 * Math.cos(timer);
+				otherlightmesh.position.z = 1000 * Math.cos(timer);
+				renderer.render(scene, camera);
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize(window.innerWidth, window.innerHeight);
+
+			}
+
+			function onDocumentMouseMove(event) {
+
+				mouseX = (event.clientX - windowHalfX);
+				mouseY = (event.clientY - windowHalfY);
+
+			}
+
+			function changeMaterial(colorHex, shini){
+
+				mesh.material.color.setHex(colorHex);
+				mesh.material.shininess = shini ;
+			}
+
+			function changeTexture(textureFile){
+
+				texture = THREE.ImageUtils.loadTexture(textureFile);
+				mesh.material.map = texture;
+
+				}
+		</script>
+	</body>
+</html>

@@ -1,0 +1,77 @@
+<html>
+<head>
+	<title>Particula na Órbita</title>
+	<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js?ver=1.7.2'></script>
+</head>
+<body>
+	<canvas id="tela" width="400" height="400"></canvas>
+</body>
+<script type="text/javascript">
+
+	var canvas = jQuery('#tela');
+	var diametro = canvas.width();
+	var context = canvas[0].getContext('2d');
+	var espaco_borda = 40;
+	var raio = (diametro/2)-espaco_borda;
+
+	function limpar_tela() {
+		context.clearRect(0,0,diametro, diametro);
+	}
+
+	function desenhar_fundo() {
+		context.beginPath();
+		context.arc((diametro/2), (diametro/2), raio, 0, Math.PI * 2, true);
+		context.lineWidth = 3;
+		context.fillStyle = '#fff';
+		context.fill();
+		context.stroke();
+	}
+
+	function desenhar_particula(x, y) {
+		context.beginPath();
+		context.arc(x+espaco_borda, y+espaco_borda, 20, 20, Math.PI * 2, true);
+		context.lineWidth = 3;
+		context.fillStyle = 'black';
+		context.fill();
+		context.stroke();
+	}
+
+	function posicionar_particula(angulo) {
+
+		var ang_rad = angulo * Math.PI/180;
+
+		var y = Math.sin(ang_rad) * raio;
+
+		var x = Math.cos(ang_rad) * raio;
+
+		if(angulo > 180 && angulo < 360) {
+			y = Math.abs(y) + raio;
+		} else {
+			y = raio - y;
+		}
+
+		if(angulo < 90 || angulo > 225) {
+			x = raio - x;
+		} else {
+			x =  raio + Math.abs(x);
+		}
+
+		limpar_tela();
+		desenhar_fundo();
+		desenhar_particula(x, y);
+	}
+
+	var contador = 0;
+	var velocidade = 30;
+
+	function girar() {
+		posicionar_particula(contador);
+
+		if(contador < 360) contador++; else contador = 0;
+
+		setTimeout('girar()', velocidade);
+	}
+
+	jQuery(document).ready(girar());
+</script>
+</html>

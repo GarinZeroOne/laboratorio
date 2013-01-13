@@ -1,0 +1,42 @@
+html,body
+{
+	background-color: #000;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+.sysmsg{
+    color: #706A6A;
+    font-style: italic;
+    font-weight: normal;
+    margin-left: 10px;
+}
+
+#page-wrap{
+    height: 100%;
+    width: 100%;
+    padding: 10px;
+}
+
+#page-wrap #history{
+	border: 0;
+	list-style: none;
+	padding: 0;
+	color: #479906;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+#page-wrap #promt{
+    background-color: #000000;
+    border: 0 none;
+    color: #479906;
+    font-size: 16px;
+    font-weight: bold;
+    height: 20px;
+    width: 100%;
+}
+
